@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::{borrow::Borrow, fmt, ops::Deref, rc::Rc};
+use std::{borrow::Borrow, fmt, hash::Hash, ops::Deref, rc::Rc};
 
 mod actions;
 pub use crate::engine::types::actions::{
@@ -14,7 +14,7 @@ use uuid::Uuid;
 pub type DevUuid = Uuid;
 pub type PoolUuid = Uuid;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 
 pub struct FilesystemUuid(Uuid);
 

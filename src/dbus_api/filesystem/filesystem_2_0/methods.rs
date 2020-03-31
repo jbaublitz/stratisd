@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use uuid::Uuid;
+
 use dbus::{
     self,
     tree::{MTFn, MethodInfo, MethodResult},
@@ -13,7 +15,7 @@ use crate::{
         types::{DbusErrorEnum, TData},
         util::{engine_to_dbus_err_tuple, get_next_arg, msg_code_ok, msg_string_ok},
     },
-    engine::{FilesystemUuid, RenameAction},
+    engine::RenameAction,
 };
 
 pub fn rename_filesystem(m: &MethodInfo<MTFn<TData>, TData>) -> MethodResult {
@@ -25,7 +27,7 @@ pub fn rename_filesystem(m: &MethodInfo<MTFn<TData>, TData>) -> MethodResult {
     let dbus_context = m.tree.get_data();
     let object_path = m.path.get_name();
     let return_message = message.method_return();
-    let default_return = (false, uuid_to_string!(FilesystemUuid::nil()));
+    let default_return = (false, uuid_to_string!(Uuid::nil()));
 
     let filesystem_path = m
         .tree
