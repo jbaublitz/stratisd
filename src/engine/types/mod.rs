@@ -12,8 +12,17 @@ pub use crate::engine::types::actions::{
 use uuid::Uuid;
 
 pub type DevUuid = Uuid;
-pub type FilesystemUuid = Uuid;
 pub type PoolUuid = Uuid;
+
+#[derive(Clone, Copy)]
+
+pub struct FilesystemUuid(Uuid);
+
+impl FilesystemUuid {
+    fn new(uuid: Uuid) -> FilesystemUuid {
+        FilesystemUuid(uuid)
+    }
+}
 
 /// A DM pool operates in 4 modes.  See drivers/md/dm-thin.c (enum pool_mode).
 /// The 4 modes map to Running, OutOfDataSpace, ReadOnly and Failed - in degrading
