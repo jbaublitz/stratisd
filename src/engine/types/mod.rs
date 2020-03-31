@@ -24,6 +24,13 @@ impl FilesystemUuid {
     }
 }
 
+impl Deref for FilesystemUuid {
+    type Target = Uuid;
+    fn deref(&self) -> &Uuid {
+        &self.0
+    }
+}
+
 /// A DM pool operates in 4 modes.  See drivers/md/dm-thin.c (enum pool_mode).
 /// The 4 modes map to Running, OutOfDataSpace, ReadOnly and Failed - in degrading
 /// order.  Stratis adds 2 additional modes - Initializing and Stopping.  The Stratis
