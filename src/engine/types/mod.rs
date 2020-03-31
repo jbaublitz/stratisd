@@ -31,6 +31,12 @@ impl Deref for FilesystemUuid {
     }
 }
 
+impl fmt::Display for FilesystemUuid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "filesystem UUID {}", self.0.to_simple_ref())
+    }
+}
+
 /// A DM pool operates in 4 modes.  See drivers/md/dm-thin.c (enum pool_mode).
 /// The 4 modes map to Running, OutOfDataSpace, ReadOnly and Failed - in degrading
 /// order.  Stratis adds 2 additional modes - Initializing and Stopping.  The Stratis
