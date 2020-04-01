@@ -28,7 +28,7 @@ pub fn create_dbus_filesystem<'a>(
     let object_name = make_object_path(dbus_context);
 
     let object_path = f
-        .object_path(object_name, Some(OPContext::new(parent, uuid)))
+        .object_path(object_name, Some(OPContext::new(parent, *uuid)))
         .introspectable()
         .add(
             f.interface(consts::FILESYSTEM_INTERFACE_NAME, ())

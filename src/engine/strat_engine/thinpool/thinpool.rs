@@ -427,7 +427,7 @@ impl ThinPool {
 
         let mut fs_table = Table::default();
         for (name, uuid, fs) in filesystems {
-            let evicted = fs_table.insert(name, uuid, fs);
+            let evicted = fs_table.insert(name, *uuid, fs);
             if evicted.is_some() {
                 // TODO: Recover here. Failing the entire pool setup because
                 // of this is too harsh.
@@ -838,14 +838,14 @@ impl ThinPool {
     }
 
     pub fn get_filesystem_by_uuid(&self, uuid: FilesystemUuid) -> Option<(Name, &StratFilesystem)> {
-        self.filesystems.get_by_uuid(uuid)
+        self.filesystems.get_by_uuid(*uuid)
     }
 
     pub fn get_mut_filesystem_by_uuid(
         &mut self,
         uuid: FilesystemUuid,
     ) -> Option<(Name, &mut StratFilesystem)> {
-        self.filesystems.get_mut_by_uuid(uuid)
+        self.filesystems.get_mut_by_uuid(*uuid)
     }
 
     pub fn get_filesystem_by_name(&self, name: &str) -> Option<(FilesystemUuid, &StratFilesystem)> {
@@ -903,7 +903,7 @@ impl ThinPool {
             return Err(err);
         }
         devlinks::filesystem_added(pool_name, &name, &new_filesystem.devnode());
-        self.filesystems.insert(name, fs_uuid, new_filesystem);
+        self.filesystems.insert(name, *fs_uuid, new_filesystem);
 
         Ok(fs_uuid)
     }
@@ -965,7 +965,7 @@ impl ThinPool {
         pool_name: &str,
         uuid: FilesystemUuid,
     ) -> StratisResult<Option<FilesystemUuid>> {
-        match self.filesystems.remove_by_uuid(uuid) {
+        match self.filesystems.remove_by_uuid(*uuid) {
             Some((fs_name, mut fs)) => match fs.destroy(&self.thin_pool) {
                 Ok(_) => {
                     if let Err(err) = self.mdv.rm_fs(uuid) {
@@ -979,7 +979,7 @@ impl ThinPool {
                     Ok(Some(uuid))
                 }
                 Err(err) => {
-                    self.filesystems.insert(fs_name, uuid, fs);
+                    self.filesystems.insert(fs_name, *uuid, fs);
                     Err(err)
                 }
             },
@@ -1016,12 +1016,12 @@ impl ThinPool {
 
         let filesystem = self
             .filesystems
-            .remove_by_uuid(uuid)
+            .remove_by_uuid(*uuid)
             .expect("Must succeed since self.filesystems.get_by_uuid() returned a value")
             .1;
 
         if let Err(err) = self.mdv.save_fs(&new_name, uuid, &filesystem) {
-            self.filesystems.insert(old_name, uuid, filesystem);
+            self.filesystems.insert(old_name, *uuid, filesystem);
             Err(err)
         } else {
             get_engine_listener_list().notify(&EngineEvent::FilesystemRenamed {
@@ -1029,9 +1029,9 @@ impl ThinPool {
                 from: &*old_name,
                 to: &*new_name,
             });
-            self.filesystems.insert(new_name.clone(), uuid, filesystem);
+            self.filesystems.insert(new_name.clone(), *uuid, filesystem);
             devlinks::filesystem_renamed(pool_name, &old_name, &new_name);
-            Ok(Some(uuid))
+            Ok(Some(*uuid))
         }
     }
 

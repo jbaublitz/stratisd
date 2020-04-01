@@ -179,7 +179,7 @@ impl StratFilesystem {
                     umount(tmp_dir.path())?;
                 }
 
-                set_uuid(&thin_dev.devnode(), snapshot_fs_uuid)?;
+                set_uuid(&thin_dev.devnode(), *snapshot_fs_uuid)?;
                 Ok(StratFilesystem {
                     thin_dev,
                     created: Utc::now(),

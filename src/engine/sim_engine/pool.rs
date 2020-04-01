@@ -160,7 +160,7 @@ impl Pool for SimPool {
     ) -> StratisResult<SetDeleteAction<FilesystemUuid>> {
         let mut removed = Vec::new();
         for &uuid in fs_uuids {
-            if self.filesystems.remove_by_uuid(uuid).is_some() {
+            if self.filesystems.remove_by_uuid(*uuid).is_some() {
                 removed.push(uuid);
             }
         }
@@ -177,11 +177,11 @@ impl Pool for SimPool {
 
         let (_, filesystem) = self
             .filesystems
-            .remove_by_uuid(uuid)
+            .remove_by_uuid(*uuid)
             .expect("Must succeed since self.filesystems.get_by_uuid() returned a value");
 
         self.filesystems
-            .insert(Name::new(new_name.to_owned()), uuid, filesystem);
+            .insert(Name::new(new_name.to_owned()), *uuid, filesystem);
 
         Ok(RenameAction::Renamed(uuid))
     }
@@ -244,13 +244,13 @@ impl Pool for SimPool {
 
     fn get_filesystem(&self, uuid: FilesystemUuid) -> Option<(Name, &dyn Filesystem)> {
         self.filesystems
-            .get_by_uuid(uuid)
+            .get_by_uuid(*uuid)
             .map(|(name, p)| (name, p as &dyn Filesystem))
     }
 
     fn get_mut_filesystem(&mut self, uuid: FilesystemUuid) -> Option<(Name, &mut dyn Filesystem)> {
         self.filesystems
-            .get_mut_by_uuid(uuid)
+            .get_mut_by_uuid(*uuid)
             .map(|(name, p)| (name, p as &mut dyn Filesystem))
     }
 
