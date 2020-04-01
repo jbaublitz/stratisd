@@ -19,7 +19,7 @@ pub type PoolUuid = Uuid;
 pub struct FilesystemUuid(Uuid);
 
 impl FilesystemUuid {
-    fn new(uuid: Uuid) -> FilesystemUuid {
+    pub fn new(uuid: Uuid) -> FilesystemUuid {
         FilesystemUuid(uuid)
     }
 }
