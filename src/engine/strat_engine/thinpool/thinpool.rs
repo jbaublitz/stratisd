@@ -917,7 +917,7 @@ impl ThinPool {
         origin_uuid: FilesystemUuid,
         snapshot_name: &str,
     ) -> StratisResult<(FilesystemUuid, &mut dyn Filesystem)> {
-        let snapshot_fs_uuid = Uuid::new_v4();
+        let snapshot_fs_uuid = FilesystemUuid::new(Uuid::new_v4());
         let (snapshot_dm_name, snapshot_dm_uuid) =
             format_thin_ids(pool_uuid, ThinRole::Filesystem(snapshot_fs_uuid));
         let snapshot_id = self.id_gen.new_id()?;
@@ -943,11 +943,11 @@ impl ThinPool {
             .save_fs(&new_fs_name, snapshot_fs_uuid, &new_filesystem)?;
         devlinks::filesystem_added(pool_name, &new_fs_name, &new_filesystem.devnode());
         self.filesystems
-            .insert(new_fs_name, snapshot_fs_uuid, new_filesystem);
+            .insert(new_fs_name, *snapshot_fs_uuid, new_filesystem);
         Ok((
             snapshot_fs_uuid,
             self.filesystems
-                .get_mut_by_uuid(snapshot_fs_uuid)
+                .get_mut_by_uuid(*snapshot_fs_uuid)
                 .expect("just inserted")
                 .1,
         ))

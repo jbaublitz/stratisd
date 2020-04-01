@@ -94,10 +94,10 @@ impl Pool for SimPool {
         let mut result = Vec::new();
         for name in names.keys() {
             if !self.filesystems.contains_name(name) {
-                let uuid = Uuid::new_v4();
+                let uuid = FilesystemUuid::new(Uuid::new_v4());
                 let new_filesystem = SimFilesystem::new();
                 self.filesystems
-                    .insert(Name::new((&**name).to_owned()), uuid, new_filesystem);
+                    .insert(Name::new((&**name).to_owned()), *uuid, new_filesystem);
                 result.push((*name, uuid));
             }
         }
@@ -197,7 +197,7 @@ impl Pool for SimPool {
             return Ok(CreateAction::Identity);
         }
 
-        let uuid = Uuid::new_v4();
+        let uuid = FilesystemUuid::new(Uuid::new_v4());
         let snapshot = match self.get_filesystem(origin_uuid) {
             Some(_filesystem) => SimFilesystem::new(),
             None => {
@@ -208,11 +208,11 @@ impl Pool for SimPool {
             }
         };
         self.filesystems
-            .insert(Name::new(snapshot_name.to_owned()), uuid, snapshot);
+            .insert(Name::new(snapshot_name.to_owned()), *uuid, snapshot);
         Ok(CreateAction::Created((
             uuid,
             self.filesystems
-                .get_mut_by_uuid(uuid)
+                .get_mut_by_uuid(*uuid)
                 .expect("just inserted")
                 .1,
         )))
