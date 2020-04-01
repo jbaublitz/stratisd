@@ -14,7 +14,7 @@ use uuid::Uuid;
 pub type DevUuid = Uuid;
 pub type PoolUuid = Uuid;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Deserialize, Eq, PartialEq, Hash, Serialize)]
 
 pub struct FilesystemUuid(Uuid);
 
