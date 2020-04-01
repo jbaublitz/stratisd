@@ -64,7 +64,7 @@ pub enum ThinRole {
 impl Display for ThinRole {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ThinRole::Filesystem(uuid) => write!(f, "fs-{}", *uuid),
+            ThinRole::Filesystem(uuid) => write!(f, "fs-{}", (*uuid).to_simple_ref()),
         }
     }
 }
