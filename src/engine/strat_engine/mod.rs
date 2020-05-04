@@ -7,7 +7,7 @@ mod backstore;
 mod cleanup;
 mod cmd;
 mod device;
-mod devlinks;
+//mod devlinks;
 mod dm;
 mod engine;
 mod liminal;

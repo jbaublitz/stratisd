@@ -22,7 +22,7 @@ use crate::{
     stratis::StratisResult,
 };
 
-pub const DEV_PATH: &str = "/stratis";
+pub const DEV_PATH: &str = "/dev/stratis";
 
 /// An interface for reporting internal engine state.
 pub trait Report {

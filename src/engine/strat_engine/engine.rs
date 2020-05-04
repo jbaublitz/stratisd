@@ -19,7 +19,7 @@ use crate::{
         strat_engine::{
             backstore::find_all,
             cmd::verify_binaries,
-            devlinks,
+            //devlinks,
             dm::{get_dm, get_dm_init},
             liminal::LiminalDevices,
             names::validate_name,
@@ -69,7 +69,7 @@ impl StratEngine {
             return Err(StratisError::Engine(ErrorEnum::Error, err_msg));
         }
 
-        devlinks::setup_dev_path()?;
+        //devlinks::setup_dev_path()?;
 
         let mut liminal_devices = LiminalDevices::new();
         let mut pools = Table::default();
@@ -81,7 +81,7 @@ impl StratEngine {
             }
         }
 
-        devlinks::cleanup_devlinks(pools.iter());
+        //devlinks::cleanup_devlinks(pools.iter());
 
         Ok(StratEngine {
             pools,
@@ -152,7 +152,7 @@ impl Engine for StratEngine {
                         StratPool::initialize(name, blockdev_paths, redundancy, key_desc)?;
 
                     let name = Name::new(name.to_owned());
-                    devlinks::pool_added(&name);
+                    //devlinks::pool_added(&name);
                     self.pools.insert(name, uuid, pool);
                     Ok(CreateAction::Created(uuid))
                 }
@@ -181,7 +181,7 @@ impl Engine for StratEngine {
             self.pools.insert(pool_name, uuid, pool);
             Err(err)
         } else {
-            devlinks::pool_removed(&pool_name);
+            //devlinks::pool_removed(&pool_name);
             Ok(DeleteAction::Deleted(uuid))
         }
     }
@@ -211,7 +211,7 @@ impl Engine for StratEngine {
             });
 
             self.pools.insert(new_name.clone(), uuid, pool);
-            devlinks::pool_renamed(&old_name, &new_name);
+            //devlinks::pool_renamed(&old_name, &new_name);
             Ok(RenameAction::Renamed(uuid))
         }
     }

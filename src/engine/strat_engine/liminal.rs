@@ -20,7 +20,7 @@ use crate::{
         strat_engine::{
             backstore::{identify_block_device, BlockDevPath, StratBlockDev, BDA},
             device::blkdev_size,
-            devlinks::setup_pool_devlinks,
+            //devlinks::setup_pool_devlinks,
             pool::StratPool,
             serde_structs::{BackstoreSave, BaseBlockDevSave, PoolSave},
         },
@@ -414,7 +414,7 @@ impl LiminalDevices {
 
         match result {
             Ok(Some((pool_name, pool))) => {
-                setup_pool_devlinks(&pool_name, &pool);
+                //setup_pool_devlinks(&pool_name, &pool);
                 info!(
                     "Pool with name \"{}\" and UUID \"{}\" set up",
                     pool_name,

@@ -575,7 +575,7 @@ mod tests {
 
     use crate::engine::{
         strat_engine::{
-            devlinks,
+            //devlinks,
             liminal::{add_bdas, get_blockdevs, get_metadata},
             tests::{loopbacked, real},
         },
@@ -694,9 +694,9 @@ mod tests {
         let (paths1, paths2) = paths.split_at(paths.len() / 2);
 
         let name = "stratis-test-pool";
-        devlinks::cleanup_devlinks(Vec::new().into_iter());
+        //devlinks::cleanup_devlinks(Vec::new().into_iter());
         let (uuid, mut pool) = StratPool::initialize(name, paths2, Redundancy::NONE, None).unwrap();
-        devlinks::pool_added(name);
+        //devlinks::pool_added(name);
         invariant(&pool, name);
 
         let metadata1 = pool.record(name);
@@ -817,10 +817,10 @@ mod tests {
         let (paths1, paths2) = paths.split_at(1);
 
         let name = "stratis-test-pool";
-        devlinks::cleanup_devlinks(Vec::new().into_iter());
+        //devlinks::cleanup_devlinks(Vec::new().into_iter());
         let (pool_uuid, mut pool) =
             StratPool::initialize(name, paths1, Redundancy::NONE, None).unwrap();
-        devlinks::pool_added(name);
+        //devlinks::pool_added(name);
         invariant(&pool, name);
 
         let fs_name = "stratis_test_filesystem";
