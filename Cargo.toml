@@ -13,6 +13,10 @@ required-features = ["extras"]
 name = "stratis_uuids_to_names"
 required-features = ["dbus_enabled"]
 
+[[bin]]
+name = "stratis_synth_udev"
+required-features = ["dbus_enabled"]
+
 [dependencies]
 clap = "2"
 nix = "0.14"
