@@ -8,6 +8,7 @@ use std::{
     path::Path,
 };
 
+use devicemapper::DmNameBuf;
 use serde_json::{json, Value};
 
 use crate::{
@@ -195,7 +196,7 @@ impl Engine for SimEngine {
             .collect()
     }
 
-    fn evented(&mut self) -> StratisResult<()> {
+    fn evented(&mut self, _: DmNameBuf) -> StratisResult<()> {
         Ok(())
     }
 

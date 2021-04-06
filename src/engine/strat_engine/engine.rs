@@ -14,7 +14,6 @@ use crate::{
         shared::{create_pool_idempotent_or_err, validate_name, validate_paths},
         strat_engine::{
             cmd::verify_binaries,
-            dm::get_dm,
             keys::{MemoryFilesystem, StratKeyActions},
             liminal::{find_all, LiminalDevices},
             pool::StratPool,
@@ -291,27 +290,13 @@ impl Engine for StratEngine {
             .collect()
     }
 
-    fn evented(&mut self) -> StratisResult<()> {
-        let device_list: HashMap<_, _> = get_dm()
-            .list_devices()?
-            .into_iter()
-            .map(|(dm_name, _, event_nr)| {
-                (
-                    dm_name,
-                    event_nr.expect("Supported DM versions always provide a value"),
-                )
-            })
-            .collect();
-
+    fn evented(&mut self, dm_name: DmNameBuf) -> StratisResult<()> {
         for (pool_name, pool_uuid, pool) in &mut self.pools {
-            for dm_name in pool.get_eventing_dev_names(*pool_uuid) {
-                if device_list.get(&dm_name) > self.watched_dev_last_event_nrs.get(&dm_name) {
-                    pool.event_on(*pool_uuid, pool_name, &dm_name)?;
-                }
+            let dm_names = pool.get_eventing_dev_names(*pool_uuid);
+            if dm_names.contains(&dm_name) {
+                pool.event_on(*pool_uuid, pool_name, &dm_name)?;
             }
         }
-
-        self.watched_dev_last_event_nrs = device_list;
 
         Ok(())
     }

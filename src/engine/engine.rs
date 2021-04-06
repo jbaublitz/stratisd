@@ -13,7 +13,7 @@ use std::{
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 
-use devicemapper::{Bytes, Sectors};
+use devicemapper::{Bytes, DmNameBuf, Sectors};
 
 use crate::{
     engine::types::{
@@ -333,7 +333,7 @@ pub trait Engine: Debug + Report + Send {
     fn pools_mut(&mut self) -> Vec<(Name, PoolUuid, &mut dyn Pool)>;
 
     /// Notify the engine that an event has occurred on the DM file descriptor.
-    fn evented(&mut self) -> StratisResult<()>;
+    fn evented(&mut self, dm_name: DmNameBuf) -> StratisResult<()>;
 
     /// Get the handler for kernel keyring operations.
     fn get_key_handler(&self) -> &dyn KeyActions;

@@ -12,30 +12,74 @@ use std::{
     },
 };
 
-use futures::stream::StreamExt;
+use futures::executor::block_on;
+use libudev::EventType;
 use nix::poll::{poll, PollFd, PollFlags};
 use tokio::{
     runtime::Builder,
     select, signal,
     sync::{
-        mpsc::{unbounded_channel, UnboundedSender},
+        mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
         Mutex,
     },
     task,
 };
 
+use devicemapper::DmNameBuf;
+
 use crate::{
     engine::{Engine, SimEngine, StratEngine, UdevEngineEvent},
     stratis::{
-        dm::DmFd, errors::StratisResult, ipc_support::setup, stratis::VERSION,
+        errors::{StratisError, StratisResult},
+        ipc_support::setup,
+        stratis::VERSION,
         udev_monitor::UdevMonitor,
     },
 };
 
+async fn dm_thread(
+    engine: Arc<Mutex<dyn Engine>>,
+    mut recv: UnboundedReceiver<String>,
+) -> StratisResult<()> {
+    loop {
+        let dm_name = recv.recv().await.ok_or_else(|| {
+            StratisError::Error(
+                "The channel between the udev thread and devicemapper thread was closed"
+                    .to_string(),
+            )
+        })?;
+        engine.lock().await.evented(DmNameBuf::new(dm_name)?)?;
+    }
+}
+
+async fn send_uevent(
+    dbus_sender: &mut UnboundedSender<UdevEngineEvent>,
+    dm_sender: &mut UnboundedSender<String>,
+    event: UdevEngineEvent,
+) {
+    if event.event_type() == EventType::Change {
+        if let Some(dm_name) = event.device().property_value("DM_NAME") {
+            let dm_name_string = match dm_name.to_str().map(|s| s.to_string()) {
+                Some(s) => s,
+                None => {
+                    warn!("Could not convert udev variable value for DM_NAME to a string");
+                    return;
+                }
+            };
+            if let Err(e) = dm_sender.send(dm_name_string) {
+                warn!("Failed to notify the engine of a devicemapper event; the devicemapper information may be stale as a result: {}", e);
+            }
+        }
+    } else if let Err(e) = dbus_sender.send(event) {
+        warn!("Failed to notify the engine of a udev event; the engine may not be aware of a new device: {}", e);
+    }
+}
+
 // Poll for udev events.
 // Check for exit condition and return if true.
 fn udev_thread(
-    sender: UnboundedSender<UdevEngineEvent>,
+    mut dbus_sender: UnboundedSender<UdevEngineEvent>,
+    mut dm_sender: UnboundedSender<String>,
     should_exit: Arc<AtomicBool>,
 ) -> StratisResult<()> {
     let context = libudev::Context::new()?;
@@ -52,13 +96,11 @@ fn udev_thread(
             }
             _ => {
                 if let Some(ref e) = udev.poll() {
-                    if let Err(e) = sender.send(UdevEngineEvent::from(e)) {
-                        warn!(
-                            "udev event could not be sent to engine thread: {}; the \
-                            engine was not notified of this udev event",
-                            e,
-                        );
-                    }
+                    block_on(send_uevent(
+                        &mut dbus_sender,
+                        &mut dm_sender,
+                        UdevEngineEvent::from(e),
+                    ))
                 }
             }
         }
@@ -71,22 +113,6 @@ async fn signal_thread(should_exit: Arc<AtomicBool>) {
         error!("Failure while listening for signals: {}", e);
     }
     should_exit.store(true, Ordering::Relaxed);
-}
-
-// Waits for devicemapper event. On devicemapper event, transfers control
-// to engine to handle event and waits until control is returned from engine.
-// Accepts None as an argument; this indicates that devicemapper events are
-// to be ignored.
-async fn dm_event_thread(engine: Option<Arc<Mutex<dyn Engine>>>) -> StratisResult<()> {
-    match engine {
-        Some(e) => {
-            let mut dm_fd = DmFd::new(e)?;
-            loop {
-                dm_fd.next().await;
-            }
-        }
-        None => Ok(()),
-    }
 }
 
 /// Set up all sorts of signal and event handling mechanisms.
@@ -132,17 +158,14 @@ pub fn run(sim: bool) -> StratisResult<()> {
         };
 
         let should_exit = Arc::new(AtomicBool::new(false));
-        let (sender, receiver) = unbounded_channel::<UdevEngineEvent>();
+        let (dbus_sender, dbus_receiver) = unbounded_channel::<UdevEngineEvent>();
+        let (dm_sender, dm_receiver) = unbounded_channel::<String>();
 
         let udev_arc_clone = Arc::clone(&should_exit);
-        let join_udev = task::spawn_blocking(move || udev_thread(sender, udev_arc_clone));
-        let join_ipc = task::spawn(setup(Arc::clone(&engine), receiver));
+        let join_udev = task::spawn_blocking(move || udev_thread(dbus_sender, dm_sender, udev_arc_clone));
+        let join_dm = task::spawn(dm_thread(Arc::clone(&engine), dm_receiver));
+        let join_ipc = task::spawn(setup(Arc::clone(&engine), dbus_receiver));
         let join_signal = task::spawn(signal_thread(Arc::clone(&should_exit)));
-        let join_dm = task::spawn(dm_event_thread(if sim {
-            None
-        } else {
-            Some(Arc::clone(&engine))
-        }));
 
         select! {
             res = join_udev => {
@@ -152,15 +175,19 @@ pub fn run(sim: bool) -> StratisResult<()> {
                     error!("The udev thread exited; shutting down stratisd...");
                 }
             }
+            res = join_dm => {
+                if let Ok(Err(e)) = res {
+                    error!("The devicemapper event processing thread exited with an error: {}; shutting down stratisd...", e);
+                } else {
+                    error!("The devicemapper event processing thread exited; shutting down stratisd...");
+                }
+            }
             res = join_ipc => {
                 if let Ok(Err(e)) = res {
                     error!("The IPC thread exited with an error: {}; shutting down stratisd...", e);
                 } else {
                     error!("The IPC thread exited; shutting down stratisd...");
                 }
-            }
-            Ok(Err(e)) = join_dm => {
-                error!("The devicemapper thread exited with an error: {}; shutting down stratisd...", e);
             }
             _ = join_signal => {
                 info!("Caught SIGINT; exiting...");
