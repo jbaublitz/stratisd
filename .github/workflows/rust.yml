@@ -29,9 +29,9 @@ jobs:
               python3-pygithub
             image: fedora:33
             task: >
-              (cd code_maintenance; make -f Makefile lint) &&
-              (cd developer_tools; make -f Makefile lint) &&
-              (cd tests/client-dbus; PYTHONPATH=./src make -f Makefile lint)
+              (cd code_maintenance; ls; make -f Makefile lint) &&
+              (cd developer_tools; ls; make -f Makefile lint) &&
+              (cd tests/client-dbus; ls; PYTHONPATH=./src make -f Makefile lint)
           - dependencies: black python3-isort
             image: fedora:33
             task: >
