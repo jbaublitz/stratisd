@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install make 
-        run: dnf install make
+        run: dnf install -y make
       - name: Install dependencies
         run: dnf install -y ${{ matrix.dependencies }}
       - name: Run test
