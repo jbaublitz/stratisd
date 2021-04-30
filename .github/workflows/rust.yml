@@ -42,8 +42,8 @@ jobs:
     container: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v2
-      - name: Install Python
-        run: dnf install python3
+      - name: Install make 
+        run: dnf install make
       - name: Install dependencies
         run: dnf install -y ${{ matrix.dependencies }}
       - name: Run test
