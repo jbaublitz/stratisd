@@ -1206,14 +1206,11 @@ mod tests {
 
     use devicemapper::{Bytes, SECTOR_SIZE};
 
-    use crate::engine::{
-        strat_engine::{
-            cmd,
-            metadata::MDADataSize,
-            tests::{loopbacked, real},
-            writing::SyncAll,
-        },
-        types::EncryptionInfo,
+    use crate::engine::strat_engine::{
+        cmd,
+        metadata::MDADataSize,
+        tests::{loopbacked, real},
+        writing::SyncAll,
     };
 
     use crate::engine::strat_engine::thinpool::filesystem::{fs_usage, FILESYSTEM_LOWATER};
@@ -1248,13 +1245,8 @@ mod tests {
     fn test_greedy_allocation(paths: &[&Path]) {
         let pool_uuid = PoolUuid::new_v4();
 
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths, MDADataSize::default(), None).unwrap();
 
         let mut pool = ThinPool::new(
             pool_uuid,
@@ -1295,13 +1287,8 @@ mod tests {
         let pool_name = "pool";
         let pool_uuid = PoolUuid::new_v4();
         let (first_path, remaining_paths) = paths.split_at(1);
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            first_path,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, first_path, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
@@ -1408,13 +1395,8 @@ mod tests {
     fn test_filesystem_snapshot(paths: &[&Path]) {
         let pool_name = "pool";
         let pool_uuid = PoolUuid::new_v4();
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
@@ -1538,13 +1520,8 @@ mod tests {
         let name2 = "name2";
 
         let pool_uuid = PoolUuid::new_v4();
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
@@ -1606,13 +1583,8 @@ mod tests {
     fn test_pool_setup(paths: &[&Path]) {
         let pool_name = "pool";
         let pool_uuid = PoolUuid::new_v4();
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
@@ -1683,13 +1655,8 @@ mod tests {
     /// same thin id and verifying that it fails.
     fn test_thindev_destroy(paths: &[&Path]) {
         let pool_uuid = PoolUuid::new_v4();
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
@@ -1752,13 +1719,8 @@ mod tests {
         let start_thindev_size: Sectors;
         let pool_name = "pool";
         let pool_uuid = PoolUuid::new_v4();
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
@@ -1850,13 +1812,8 @@ mod tests {
     fn test_suspend_resume(paths: &[&Path]) {
         let pool_name = "pool";
         let pool_uuid = PoolUuid::new_v4();
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
@@ -1901,13 +1858,8 @@ mod tests {
 
         let pool_name = "pool";
         let pool_uuid = PoolUuid::new_v4();
-        let mut backstore = Backstore::initialize(
-            pool_uuid,
-            paths2,
-            MDADataSize::default(),
-            &EncryptionInfo::default(),
-        )
-        .unwrap();
+        let mut backstore =
+            Backstore::initialize(pool_uuid, paths2, MDADataSize::default(), None).unwrap();
         let mut pool = ThinPool::new(
             pool_uuid,
             &ThinPoolSizeParams::default(),
