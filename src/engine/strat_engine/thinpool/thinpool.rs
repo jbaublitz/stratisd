@@ -204,12 +204,12 @@ impl fmt::Display for ThinPoolStatusDigest {
 }
 
 /// Calculate the room available for data that is not taken up by metadata.
-fn room_for_data(usable_size: Sectors, meta_size: Sectors) -> Sectors {
-    Sectors(
+fn room_for_data(usable_size: Sectors, meta_size: Sectors) -> DataBlocks {
+    sectors_to_datablocks(Sectors(
         usable_size
             .saturating_sub(*INITIAL_MDV_SIZE)
             .saturating_sub(*meta_size * 2u64),
-    )
+    ))
 }
 
 pub struct ThinPoolSizeParams {
@@ -223,7 +223,7 @@ impl ThinPoolSizeParams {
     pub fn new(total_usable: Sectors) -> StratisResult<Self> {
         let meta_size = thin_metadata_size(DATA_BLOCK_SIZE, total_usable, DEFAULT_FS_LIMIT)?;
         let data_size = min(
-            room_for_data(total_usable, meta_size),
+            datablocks_to_sectors(room_for_data(total_usable, meta_size)),
             datablocks_to_sectors(DATA_ALLOC_SIZE),
         );
 
@@ -1506,10 +1506,10 @@ impl ThinPool {
     /// Return the limit for total size of all filesystems when overprovisioning
     /// is disabled.
     pub fn total_fs_limit(&self, backstore: &Backstore) -> Sectors {
-        room_for_data(
+        datablocks_to_sectors(room_for_data(
             backstore.datatier_usable_size(),
             self.thin_pool.meta_dev().size(),
-        )
+        ))
     }
 
     /// Returns a boolean indicating whether overprovisioning is disabled or not.
