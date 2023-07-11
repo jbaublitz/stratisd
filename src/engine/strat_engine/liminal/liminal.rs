@@ -727,9 +727,7 @@ impl LiminalDevices {
             Err((err, bdas)) => {
                 info!("Attempt to set up pool failed, but it may be possible to set up the pool later, if the situation changes: {}", err);
                 let device_set = reconstruct_stratis_infos(infos, bdas);
-                if !device_set.is_empty() {
-                    self.stopped_pools.insert(pool_uuid, device_set);
-                }
+                self.handle_stopped_pool(pool_uuid, device_set);
                 None
             }
         }
@@ -914,44 +912,8 @@ impl LiminalDevices {
                 .map(|(dev_uuid, _)| *dev_uuid)
                 .collect::<Vec<_>>();
             if has_leftover_devices(pool_uuid, &device_uuids) {
-                let dev_uuids = device_set
-                    .iter()
-                    .map(|(dev_uuid, _)| *dev_uuid)
-                    .collect::<Vec<_>>();
-                let res = stop_partially_constructed_pool(pool_uuid, &dev_uuids);
-                let device_set = device_set
-                    .into_iter()
-                    .map(|(dev_uuid, info)| {
-                        (
-                            dev_uuid,
-                            match info {
-                                LInfo::Luks(l) => LInfo::Luks(l),
-                                LInfo::Stratis(mut s) => {
-                                    if let Some(l) = s.luks {
-                                        if !s.dev_info.devnode.exists() {
-                                            LInfo::Luks(l)
-                                        } else {
-                                            s.luks = Some(l);
-                                            LInfo::Stratis(s)
-                                        }
-                                    } else {
-                                        LInfo::Stratis(s)
-                                    }
-                                }
-                            },
-                        )
-                    })
-                    .collect::<DeviceSet>();
-                match res {
-                    Ok(_) => {
-                        assert!(!has_leftover_devices(pool_uuid, &device_uuids));
-                        self.stopped_pools.insert(pool_uuid, device_set);
-                    }
-                    Err(_) => {
-                        self.partially_constructed_pools
-                            .insert(pool_uuid, device_set);
-                    }
-                }
+                self.partially_constructed_pools
+                    .insert(pool_uuid, device_set);
             } else {
                 self.stopped_pools.insert(pool_uuid, device_set);
             }
