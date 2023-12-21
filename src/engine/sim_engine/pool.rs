@@ -484,7 +484,25 @@ impl Pool for SimPool {
             }
         }
 
-        Ok(SetDeleteAction::new(removed, vec![]))
+        let snapshots: Vec<FilesystemUuid> = self
+            .filesystems()
+            .iter()
+            .filter_map(|(_, u, fs)| {
+                fs.origin()
+                    .and_then(|x| if removed.contains(&x) { Some(*u) } else { None })
+            })
+            .collect();
+
+        let mut updated_origins = vec![];
+        for sn_uuid in snapshots {
+            if let Some((_, fs)) = self.filesystems.get_mut_by_uuid(sn_uuid) {
+                if fs.unset_origin() {
+                    updated_origins.push(sn_uuid);
+                }
+            }
+        }
+
+        Ok(SetDeleteAction::new(removed, updated_origins))
     }
 
     fn rename_filesystem(
