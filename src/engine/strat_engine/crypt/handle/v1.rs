@@ -1486,7 +1486,7 @@ mod tests {
                 .unwrap();
         }
 
-        crypt::insert_and_remove_key(paths, both_initialize, unlock_clevis);
+        crypt::insert_and_remove_key(paths, both_initialize, |paths, _| unlock_clevis(paths));
     }
 
     #[test]
