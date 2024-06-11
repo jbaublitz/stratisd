@@ -375,7 +375,7 @@ impl LiminalDevices {
                 )),
                 (true, None, _) => return Err((
                     StratisError::Msg(
-                        "Metadata reported that encryption was not enabled but unlock method was provided"
+                        "Metadata reported that encryption enabled but no unlock method was provided"
                             .to_string()
                     ),
                     bdas,
