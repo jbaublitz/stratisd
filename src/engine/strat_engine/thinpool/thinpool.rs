@@ -682,10 +682,6 @@ impl ThinPool {
             None
         };
 
-        if let Some(Sectors(0)) = remaining_space.as_ref() {
-            return Ok(HashMap::default());
-        };
-
         scope(|s| {
             // This collect is needed to ensure all threads are spawned in
             // parallel, not each thread being spawned and immediately joined
@@ -702,11 +698,7 @@ impl ThinPool {
                             remaining_space.as_mut(),
                             fs.size_limit().map(|sl| sl - fs.thindev_size()),
                         );
-                        if extend_size == Sectors(0) {
-                            None
-                        } else {
-                            Some((name, *uuid, fs, mt_pt, extend_size))
-                        }
+                        Some((name, *uuid, fs, mt_pt, extend_size))
                     } else {
                         None
                     }
@@ -731,8 +723,12 @@ impl ThinPool {
                 .fold(Vec::new(), |mut acc, res| {
                     match res {
                         Ok((name, uuid, fs, diff)) => {
-                            updated.insert(uuid, diff);
-                            acc.push((name, uuid, fs));
+                            if diff.size.is_changed() {
+                                acc.push((name, uuid, fs));
+                            }
+                            if diff.size.is_changed() || diff.used.is_changed() {
+                                updated.insert(uuid, diff);
+                            }
                         }
                         Err(e) => {
                             warn!("Failed to extend filesystem: {}", e);

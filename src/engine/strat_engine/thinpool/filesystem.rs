@@ -309,19 +309,21 @@ impl StratFilesystem {
     ) -> StratisResult<StratFilesystemDiff> {
         let original_state = self.cached();
 
-        let old_table = self.thin_dev.table().table.clone();
-        let mut new_table = old_table.clone();
-        new_table.length = original_state.size.sectors() + extend_size;
-        self.thin_dev.set_table(get_dm(), new_table)?;
-        if let Err(causal) = xfs_growfs(mount_point) {
-            if let Err(rollback) = self.thin_dev.set_table(get_dm(), old_table) {
-                return Err(StratisError::RollbackError {
-                    causal_error: Box::new(causal),
-                    rollback_error: Box::new(StratisError::from(rollback)),
-                    level: ActionAvailability::NoPoolChanges,
-                });
-            } else {
-                return Err(causal);
+        if extend_size > Sectors(0) {
+            let old_table = self.thin_dev.table().table.clone();
+            let mut new_table = old_table.clone();
+            new_table.length = original_state.size.sectors() + extend_size;
+            self.thin_dev.set_table(get_dm(), new_table)?;
+            if let Err(causal) = xfs_growfs(mount_point) {
+                if let Err(rollback) = self.thin_dev.set_table(get_dm(), old_table) {
+                    return Err(StratisError::RollbackError {
+                        causal_error: Box::new(causal),
+                        rollback_error: Box::new(StratisError::from(rollback)),
+                        level: ActionAvailability::NoPoolChanges,
+                    });
+                } else {
+                    return Err(causal);
+                }
             }
         }
 
