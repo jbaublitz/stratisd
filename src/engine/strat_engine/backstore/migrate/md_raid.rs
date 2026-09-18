@@ -41,6 +41,7 @@ fn set_up_raid_array(
         .arg(format!("/dev/md/{pool_uuid}").as_str())
         .arg("--level=1")
         .arg("--raid-devices=2")
+        .arg("--metadata=none")
         .arg(cap_device)
         .arg(destination);
 
